@@ -16,10 +16,10 @@ class LinkedListCell;
 template <class T>
 class LinkedList;
 
-class SliceException : public std::exception
+class ListException : public std::exception
 {
 public:
-    SliceException(std::string in) { _msg = in; }
+    ListException(const std::string &in) { _msg = in; }
     virtual const char *what() { return _msg.c_str(); }
 
 protected:
@@ -130,6 +130,16 @@ public:
         return *this;
     }
 
+    LinkedList &operator=(LinkedList &&other){
+        _head = other._head;
+        _tail = other._tail;
+        _len = other._len;
+        other._tail = nullptr;
+        other._head = nullptr;
+        other._len = 0;
+        return *this;
+    }
+
     LinkedList(const LinkedList &other)
     {
         _head = nullptr;
@@ -141,11 +151,25 @@ public:
         }
     }
 
+    LinkedList(LinkedList &&other){
+        _head = other._head;
+        _tail = other._tail;
+        _len = other._len;
+        other._tail = nullptr;
+        other._head = nullptr;
+        other._len = 0;
+    }
+
+
+
     virtual size_t len() { return _len; }
 
-    virtual void prepend(const T &data)
+    virtual void prepend( T &data)
     {
         _head = std::make_shared<LinkedListCell<T>>(data, _head);
+        if(!_tail){
+            _tail = _head;
+        }
         _len++;
     }
 
@@ -170,7 +194,7 @@ public:
         while (true)
         {
             if (at == nullptr)
-                throw SliceException("Index out of range");
+                throw ListException("Index out of range");
             if (location == 0)
                 return at->_data;
             location--;
@@ -178,20 +202,20 @@ public:
         }
     }
 
-    LinkedListIterator<T> begin() const
+    virtual LinkedListIterator<T> begin() const
     {
         return LinkedListIterator<T>(_head);
     };
-    LinkedListIterator<T> end() const
+    virtual LinkedListIterator<T> end() const
     {
         return LinkedListIterator<T>(nullptr);
     }
 
-    ConstLinkedListIterator<T> cbegin() const
+    virtual ConstLinkedListIterator<T> cbegin() const
     {
         return ConstLinkedListIterator<T>(_head);
     };
-    ConstLinkedListIterator<T> cend() const
+    virtual ConstLinkedListIterator<T> cend() const
     {
         return ConstLinkedListIterator<T>(nullptr);
     }
@@ -231,7 +255,7 @@ LinkedList<U> list_map(LinkedList<T> &in,
                        std::function<U(T)> f)
 {
     LinkedList<U> ret;
-    for (auto c : in)
+    for (const auto &c : in)
     {
         ret.append(f(c));
     }
@@ -242,7 +266,7 @@ template <class U, class T>
 U list_reduce(LinkedList<T> &in,
               std::function<U(U, T)> f, U initval)
 {
-    for (auto c : in)
+    for (const auto &c : in)
     {
         initval = f(initval, c);
     }

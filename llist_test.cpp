@@ -11,7 +11,7 @@ TEST(LinkedListTest, AppendingOnEnd)
     {
         EXPECT_EQ(foo.len(), i);
         EXPECT_EQ(bar.len(), i);
-        EXPECT_THROW(foo[i], SliceException);
+        EXPECT_THROW(foo[i], ListException);
         foo.append(i);
         bar.prepend(i);
         EXPECT_EQ(foo[i], i);
@@ -37,6 +37,16 @@ TEST(LinkedListTest, AppendingOnEnd)
         j++;
     }
     EXPECT_EQ(to_string(foo), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
+
+    auto moved = std::move(foo);
+
+    EXPECT_EQ(to_string(moved), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
+    EXPECT_EQ(to_string(foo), "[]");
+
+    foo = std::move(moved);
+
+    EXPECT_EQ(to_string(foo), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
+    EXPECT_EQ(to_string(moved), "[]");
 
     LinkedList<std::string> baz;
     baz.append("Hola");
